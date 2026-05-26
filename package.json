@@ -1,0 +1,13 @@
+{
+  "name": "medicentral",
+  "private": true,
+  "description": "MediCentral monorepo — use Docker Desktop or local dev scripts",
+  "scripts": {
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:reset": "docker compose down -v && docker compose up --build -d",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend"
+  }
+}

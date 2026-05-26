@@ -1,0 +1,151 @@
+// MediCentral — target relational schema (PostgreSQL)
+// Phase 0: architectural contract. Runtime still uses MongoDB + Mongoose until Phase 1 migration.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Platform & tenancy ─────────────────────────────────────────────────────
+
+model HospitalTenant {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  branches  Branch[]
+  staff     Staff[]
+  visits    HospitalVisit[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Branch {
+  id        String         @id @default(cuid())
+  slug      String
+  name      String
+  city      String
+  state     String?
+  tenantId  String
+  tenant    HospitalTenant @relation(fields: [tenantId], references: [id])
+  staff     Staff[]
+  visits    HospitalVisit[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@unique([tenantId, slug])
+}
+
+// ─── Global patient ─────────────────────────────────────────────────────────
+
+model Patient {
+  id              String           @id @default(cuid())
+  patientId       String           @unique // MC-PT-XXXX
+  userId          String?          @unique
+  timelineEvents  TimelineEvent[]
+  visits          HospitalVisit[]
+  consentGrants   ConsentAccess[]  @relation("PatientConsents")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+// ─── Staff & RBAC ───────────────────────────────────────────────────────────
+
+model Staff {
+  id               String         @id @default(cuid())
+  userId           String         @unique
+  operationalRole  String // receptionist, doctor_pa, doctor, ...
+  tenantId         String?
+  branchId         String?
+  tenant           HospitalTenant? @relation(fields: [tenantId], references: [id])
+  branch           Branch?         @relation(fields: [branchId], references: [id])
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+// ─── Visit = local operational backbone ─────────────────────────────────────
+
+model HospitalVisit {
+  id             String         @id @default(cuid())
+  patientId      String
+  patient        Patient        @relation(fields: [patientId], references: [id])
+  tenantId       String
+  branchId       String
+  tenant         HospitalTenant @relation(fields: [tenantId], references: [id])
+  branch         Branch         @relation(fields: [branchId], references: [id])
+  visitType      String         @default("OP") // OP | IP
+  tokenNumber    String?
+  department     String?
+  workflowState  String         @default("REGISTERED") // includes PA_REVIEW in Phase 1
+  priority       String         @default("normal")
+  checkIn        DateTime       @default(now())
+  checkOut       DateTime?
+  queueItems     WorkflowQueueItem[]
+  timelineEvents TimelineEvent[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([tenantId, branchId, workflowState])
+  @@index([patientId, checkIn])
+}
+
+// ─── Workflow queues ────────────────────────────────────────────────────────
+
+model WorkflowQueueItem {
+  id        String        @id @default(cuid())
+  visitId   String
+  visit     HospitalVisit @relation(fields: [visitId], references: [id])
+  queueType String        // RECEPTION, PA, DOCTOR, ...
+  status    String        @default("PENDING")
+  priority  String        @default("normal")
+  assignedTo String?
+  dueAt     DateTime?
+  completedAt DateTime?
+  meta      Json?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([queueType, status])
+  @@index([visitId])
+}
+
+// ─── Global timeline ─────────────────────────────────────────────────────────
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  visitId     String?
+  visit       HospitalVisit? @relation(fields: [visitId], references: [id])
+  tenantId    String?
+  branchId    String?
+  type        String
+  title       String
+  summary     String?
+  payload     Json?
+  occurredAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([patientId, occurredAt])
+}
+
+// ─── Cross-hospital interoperability ────────────────────────────────────────
+
+model ConsentAccess {
+  id              String   @id @default(cuid())
+  patientId       String
+  patient         Patient  @relation("PatientConsents", fields: [patientId], references: [id])
+  requestingTenantId String
+  status          String   @default("PENDING")
+  approvedAt      DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([patientId, status])
+}

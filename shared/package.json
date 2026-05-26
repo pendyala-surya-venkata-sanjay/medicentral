@@ -1,0 +1,14 @@
+{
+  "name": "@medicentral/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cross-cutting constants and types for MediCentral OS",
+  "exports": {
+    ".": "./index.js",
+    "./roles": "./constants/roles.js",
+    "./workflow": "./constants/workflow.js",
+    "./queues": "./constants/queues.js",
+    "./timeline": "./constants/timeline.js"
+  }
+}

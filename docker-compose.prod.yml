@@ -1,0 +1,57 @@
+# Production-style stack — use with Atlas MONGO_URI in .env
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://api.yourdomain.com/api}
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      TRUST_PROXY: "true"
+      ML_SERVICE_URL: http://ml-service:8000
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      SEED_DEMO_DATA: "false"
+      STRICT_TENANT_SCOPE: "true"
+      ENABLE_SOCKET: "true"
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+      PRESENTATION_MODE: ${PRESENTATION_MODE:-false}
+    volumes:
+      - backend_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      ml-service:
+        condition: service_started
+    restart: unless-stopped
+
+  ml-service:
+    build:
+      context: ./ml-service
+    restart: unless-stopped
+
+volumes:
+  backend_uploads:

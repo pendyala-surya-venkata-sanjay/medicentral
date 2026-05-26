@@ -1,0 +1,64 @@
+/**
+ * Queue types — each operational dashboard is a live queue, not a form page.
+ */
+
+export const QUEUE_TYPES = {
+  RECEPTION: 'RECEPTION',
+  PA: 'PA',
+  DOCTOR: 'DOCTOR',
+  LAB: 'LAB',
+  WARD: 'WARD',
+  SURGERY: 'SURGERY',
+  PHARMACY: 'PHARMACY',
+  BILLING: 'BILLING',
+  PRINTING: 'PRINTING',
+};
+
+export const QUEUE_TYPE_LIST = Object.values(QUEUE_TYPES);
+
+/** Primary queues for Phase 1+ dashboards */
+export const PRIMARY_QUEUES = [
+  QUEUE_TYPES.RECEPTION,
+  QUEUE_TYPES.PA,
+  QUEUE_TYPES.DOCTOR,
+  QUEUE_TYPES.LAB,
+  QUEUE_TYPES.WARD,
+  QUEUE_TYPES.SURGERY,
+  QUEUE_TYPES.PHARMACY,
+  QUEUE_TYPES.BILLING,
+  QUEUE_TYPES.PRINTING,
+];
+
+export const QUEUE_STATUS = {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+};
+
+/**
+ * Which workflow states surface on which queue (foundation mapping).
+ * @type {Record<string, string[]>}
+ */
+export const WORKFLOW_STATES_BY_QUEUE = {
+  [QUEUE_TYPES.RECEPTION]: ['REGISTERED'],
+  [QUEUE_TYPES.PA]: ['WAITING_FOR_PA', 'PA_REVIEW'],
+  [QUEUE_TYPES.DOCTOR]: ['WAITING_FOR_DOCTOR', 'IN_CONSULTATION'],
+  [QUEUE_TYPES.LAB]: ['LAB_REQUIRED', 'LAB_PENDING', 'LAB_COMPLETED'],
+  [QUEUE_TYPES.WARD]: [
+    'ADMISSION_REQUIRED',
+    'ADMITTED',
+    'UNDER_OBSERVATION',
+    'READY_FOR_SURGERY',
+    'POST_SURGERY',
+  ],
+  [QUEUE_TYPES.SURGERY]: [
+    'SURGERY_REQUIRED',
+    'SURGERY_SCHEDULED',
+    'IN_SURGERY',
+    'POST_SURGERY',
+  ],
+  [QUEUE_TYPES.PHARMACY]: ['PHARMACY_PENDING'],
+  [QUEUE_TYPES.BILLING]: ['BILLING_PENDING', 'PAYMENT_COMPLETED'],
+  [QUEUE_TYPES.PRINTING]: ['READY_FOR_DISCHARGE'],
+};

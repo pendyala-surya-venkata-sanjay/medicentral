@@ -1,0 +1,48 @@
+# MediCentral production blueprint — Render.com
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: medicentral-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: node server.js
+    healthCheckPath: /health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: TRUST_PROXY
+        value: "true"
+      - key: ENABLE_SOCKET
+        value: "true"
+      - key: STRICT_TENANT_SCOPE
+        value: "true"
+      - key: SEED_DEMO_DATA
+        value: "false"
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+      - key: ML_SERVICE_URL
+        sync: false
+      - key: STORAGE_PROVIDER
+        value: local
+      - key: APP_VERSION
+        value: "1.0.0"
+
+  - type: web
+    name: medicentral-ml
+    runtime: docker
+    rootDir: ml-service
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
