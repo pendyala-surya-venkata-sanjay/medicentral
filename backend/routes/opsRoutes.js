@@ -15,6 +15,7 @@ import {
   requestAdmission,
   listHospitalDoctors,
   listDoctorScopedQueue,
+  listDoctorFollowUpQueue,
   listPendingPrebooks,
   checkInPrebookToDoctorQueue,
   listFollowUpPatients,
@@ -32,6 +33,7 @@ router.get('/patients/search', requireStaffContext, searchPatientsQuick);
 router.get('/patients/lookup', requireStaffContext, lookupPatientById);
 router.get('/hospital/doctors', requireStaffContext, listHospitalDoctors);
 router.get('/doctor/queue', requireStaffContext, listDoctorScopedQueue);
+router.get('/doctor/follow-ups', requireStaffContext, listDoctorFollowUpQueue);
 router.get('/prebooks/pending', requireStaffContext, listPendingPrebooks);
 router.post('/prebooks/:prebookId/check-in', requireStaffContext, checkInPrebookToDoctorQueue);
 router.get('/follow-up/patients', requireStaffContext, listFollowUpPatients);

@@ -1,6 +1,7 @@
 import HospitalVisit from '../../models/HospitalVisit.js';
 import Patient from '../../models/Patient.js';
 import Doctor from '../../models/Doctor.js';
+import Prescription from '../../models/Prescription.js';
 import Branch from '../../models/platform/Branch.js';
 import HospitalTenant from '../../models/platform/HospitalTenant.js';
 import { WorkflowEngine } from './workflow.engine.js';
@@ -166,11 +167,6 @@ export class WorkflowTransitionService {
         createdBy: req?.user,
       });
       await notifyBillingPending({ tenant, branch, visit, bill });
-    }
-
-    if (action === 'mark_follow_up') {
-      visit.followUpRequired = true;
-      await visit.save();
     }
 
     if (action === 'send_billing' && meta?.dischargeRequested) {
@@ -353,14 +349,19 @@ export class WorkflowTransitionService {
     const patient = visit.patient?._id ? visit.patient : await Patient.findById(visit.patient);
 
     const doctorOutcomeActions = ['send_billing', 'mark_follow_up', 'ready_discharge'];
-    if (
-      fromState === WORKFLOW_STATES.IN_CONSULTATION &&
-      doctorOutcomeActions.includes(action) &&
-      !visit.hasDoctorPrescription
-    ) {
-      const err = new Error('Submit a prescription before sending the patient to follow-up or discharge');
-      err.status = 400;
-      throw err;
+    if (fromState === WORKFLOW_STATES.IN_CONSULTATION && doctorOutcomeActions.includes(action)) {
+      const hasRx =
+        visit.hasDoctorPrescription ||
+        (await Prescription.exists({ visit: visit._id }));
+      if (!hasRx) {
+        const err = new Error('Submit a prescription before sending the patient to follow-up or discharge');
+        err.status = 400;
+        throw err;
+      }
+      if (!visit.hasDoctorPrescription) {
+        visit.hasDoctorPrescription = true;
+        visit.doctorSubmittedAt = visit.doctorSubmittedAt || new Date();
+      }
     }
 
     await QueueService.completeQueuesForVisit(visit._id);

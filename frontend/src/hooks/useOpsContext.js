@@ -132,7 +132,8 @@ export const useQueue = (queueType, refreshKey = 0, opsCtx = null) => {
 
 
 
-export const transitionVisit = (visitId, action, body = {}) =>
-
-  api.post(`/workflow/visit/${visitId}/transition`, { action, ...body });
+export const transitionVisit = async (visitId, action, body = {}) => {
+  const { data } = await api.post(`/workflow/visit/${visitId}/transition`, { action, ...body });
+  return data;
+};
 

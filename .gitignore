@@ -68,3 +68,4 @@ agent-transcripts/
 *.pem
 *.key
 .cache/
+.vercel

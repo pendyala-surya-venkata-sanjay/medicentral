@@ -468,6 +468,44 @@ export const checkInPrebookToDoctorQueue = async (req, res, next) => {
   }
 };
 
+export const listDoctorFollowUpQueue = async (req, res, next) => {
+  try {
+    const doctor = await Doctor.findOne({
+      user: req.user._id,
+      tenant: req.tenant._id,
+      branch: req.branch._id,
+    });
+
+    const filter = {
+      tenant: req.tenant._id,
+      branch: req.branch._id,
+      hasDoctorPrescription: true,
+      followUpRequired: true,
+      workflowState: {
+        $in: [
+          WORKFLOW_STATES.BILLING_PENDING,
+          WORKFLOW_STATES.PAYMENT_COMPLETED,
+          WORKFLOW_STATES.READY_FOR_DISCHARGE,
+        ],
+      },
+    };
+    if (doctor?._id) {
+      filter.assignedDoctor = doctor._id;
+    }
+
+    const visits = await HospitalVisit.find(filter)
+      .populate('patient')
+      .populate({ path: 'patient', populate: { path: 'user', select: 'name' } })
+      .sort({ doctorSubmittedAt: -1, checkIn: -1 })
+      .limit(40);
+
+    const cards = await Promise.all(visits.map((v) => buildPatientCard(v.patient, v)));
+    res.json(cards);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const listWardAdmittedPatients = async (req, res, next) => {
   try {
     const visits = await HospitalVisit.find({

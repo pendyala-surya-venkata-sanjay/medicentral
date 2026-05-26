@@ -1,5 +1,6 @@
 import HospitalTenant from '../models/platform/HospitalTenant.js';
 import Branch from '../models/platform/Branch.js';
+import Doctor from '../models/Doctor.js';
 import { TenantService } from '../modules/tenants/tenant.service.js';
 import { resolveOperationalRole } from '../modules/auth/rbac.js';
 
@@ -24,6 +25,21 @@ export const requireStaffContext = async (req, res, next) => {
     if (req.staff?.branch) {
       branch =
         req.staff.branch.slug != null ? req.staff.branch : await Branch.findById(req.staff.branch);
+    }
+
+    if ((!tenant || !branch) && (req.doctor?.tenant || req.user?.role === 'doctor')) {
+      const doctor =
+        req.doctor ||
+        (await Doctor.findOne({ user: req.user._id })
+          .populate('tenant', 'slug name')
+          .populate('branch', 'slug name city'));
+      if (doctor?.tenant) {
+        tenant =
+          doctor.tenant.slug != null ? doctor.tenant : await HospitalTenant.findById(doctor.tenant);
+        branch =
+          doctor.branch?.slug != null ? doctor.branch : await Branch.findById(doctor.branch);
+        req.doctor = doctor;
+      }
     }
 
     if (!tenant || !branch) {
