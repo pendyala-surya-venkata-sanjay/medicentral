@@ -26,45 +26,25 @@ graph LR
 5. **Symptom Assistant:** select `fever` + `cough` → run analysis.
 6. **Hospitals:** allow location → view facilities (auto-seeded when empty).
 
-## Local setup (manual)
+## Run locally (start here)
 
-### Prerequisites
+See **[LOCAL.md](./LOCAL.md)** for the full guide.
 
-- Node.js 18+
-- MongoDB (local or Atlas)
-- Python 3.10+ (for ML service)
+**Quick start (Windows):**
 
-### 1. Backend
-
-```bash
-cd backend
-cp .env.example .env
-# Edit .env — set MONGO_URI and JWT_SECRET
-npm install
-npm run seed    # optional: seed hospitals
+```powershell
+cd medicentral
+cd backend && npm install && cd ..
+cd frontend && npm install && cd ..
+docker compose up -d mongo
 npm run dev
 ```
 
-### 2. ML service
+- **App:** http://localhost:5173  
+- **API:** http://localhost:5000/health  
+- **Frontend API URL:** `frontend/.env` → `VITE_API_URL=http://localhost:5000/api`
 
-```bash
-cd ml-service
-python -m venv venv
-# Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app:app --reload --port 8000
-```
-
-### 3. Frontend
-
-```bash
-cd frontend
-cp .env.example .env
-npm install
-npm run dev
-```
-
-Open http://localhost:5173 — API defaults to `http://localhost:5000/api`.
+Register at `/register`, then test reception → doctor → prescription → staff follow-up.
 
 ## Production deploy (Vercel + Render)
 
