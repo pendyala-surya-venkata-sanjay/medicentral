@@ -25,7 +25,9 @@ Vercel runs the **React frontend** only. The **API** (Express + MongoDB + WebSoc
 
 1. Push code to GitHub: [medicentral](https://github.com/pendyala-surya-venkata-sanjay/medicentral).
 2. [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint** → connect repo → use `render.yaml`.
-3. Or **New Web Service** → repo → **Root Directory:** `backend` → **Build:** `npm install` → **Start:** `node server.js`.
+3. Or **New Web Service** → repo → **Root Directory:** `backend` → **Runtime:** Node → **Build:** `npm install --omit=dev` → **Start:** `node server.js`.
+
+If Docker build fails with *no such file or directory* for `Dockerfile`, see [RENDER.md](./RENDER.md) (use Node runtime or latest `main` with root `Dockerfile`).
 4. Set environment variables:
 
 | Key | Value |

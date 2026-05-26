@@ -2,13 +2,15 @@
 # https://render.com/docs/blueprint-spec
 
 services:
+  # API — use Node (recommended) OR Docker with root ./Dockerfile
   - type: web
     name: medicentral-api
     runtime: node
     rootDir: backend
-    buildCommand: npm ci
+    buildCommand: npm install --omit=dev
     startCommand: node server.js
     healthCheckPath: /health/ready
+    plan: free
     envVars:
       - key: NODE_ENV
         value: production
