@@ -66,6 +66,13 @@ npm run dev
 
 Open http://localhost:5173 — API defaults to `http://localhost:5000/api`.
 
+## Production deploy (Vercel + Render)
+
+- **Frontend:** [Vercel](https://vercel.com/new/clone?repository-url=https://github.com/pendyala-surya-venkata-sanjay/medicentral) — set `VITE_API_URL` to your API URL + `/api`
+- **API + DB:** [Render](https://render.com) + [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) — see [DEPLOY-VERCEL.md](./DEPLOY-VERCEL.md)
+
+Vercel cannot host the full Express/MongoDB/WebSocket backend; use Render for the API (blueprint: `render.yaml`).
+
 ## Docker Desktop (recommended)
 
 1. Start **Docker Desktop** and wait until it is running.

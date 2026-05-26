@@ -30,6 +30,7 @@ services:
         generateValue: true
       - key: CORS_ORIGIN
         sync: false
+        # Example: https://medicentral.vercel.app
       - key: ML_SERVICE_URL
         sync: false
       - key: STORAGE_PROVIDER
