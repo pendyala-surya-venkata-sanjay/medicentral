@@ -7,6 +7,8 @@
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
     "docker:reset": "docker compose down -v && docker compose up --build -d",
+    "docker:autostart:install": "powershell -ExecutionPolicy Bypass -File ./scripts/install-docker-autostart.ps1",
+    "docker:autostart:uninstall": "powershell -ExecutionPolicy Bypass -File ./scripts/uninstall-docker-autostart.ps1",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend"
   }

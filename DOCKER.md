@@ -5,6 +5,28 @@
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and **running**
 - WSL2 backend enabled (recommended on Windows)
 
+## Auto-start when Docker Desktop opens (Windows)
+
+After the **first** build (`docker compose up --build -d`), use autostart so MediCentral starts whenever you sign in and Docker Engine is ready:
+
+1. **Docker Desktop** → **Settings** → **General** → enable **Start Docker Desktop when you sign in to your computer**.
+2. In PowerShell, from the project root:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+.\scripts\install-docker-autostart.ps1
+```
+
+This registers a Windows task that waits for Docker, then runs `docker compose up -d`. Logs: `logs/docker-autostart.log`.
+
+To remove autostart:
+
+```powershell
+.\scripts\uninstall-docker-autostart.ps1
+```
+
+All compose services use `restart: unless-stopped`, so if you leave containers running they also come back when Docker Engine restarts.
+
 ## Quick start
 
 From the project root (`medicentral`):
