@@ -2,10 +2,10 @@
 
 Vercel runs the **React frontend** only. The **API** (Express + MongoDB + WebSockets) must run on [Render](https://render.com) (free tier works). This is normal — Vercel does not host long-running Node servers with databases.
 
-| Part | Platform | URL (example) |
-|------|----------|----------------|
-| Frontend | [Vercel](https://vercel.com) | `https://medicentral.vercel.app` |
-| API | [Render](https://render.com) | `https://medicentral-api.onrender.com` |
+| Part | Platform | URL |
+|------|----------|-----|
+| Frontend | [Vercel](https://vercel.com) | https://medicentral-swart.vercel.app |
+| API | [Render](https://render.com) | https://medicentral.onrender.com |
 | Database | [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) | connection string |
 
 ---
