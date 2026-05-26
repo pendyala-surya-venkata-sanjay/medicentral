@@ -8,7 +8,9 @@ import HospitalVisit from '../models/HospitalVisit.js';
 import { AuditService } from '../modules/audit/audit.service.js';
 import { AUDIT_ACTIONS } from '../modules/audit/audit.actions.js';
 import { parseDurationDays } from '../utils/parseDurationDays.js';
+import { generateDoctorId } from '../utils/idGenerator.js';
 import { WORKFLOW_STATES } from '../../shared/constants/workflow.js';
+import { resolveOperationalRole } from '../modules/auth/rbac.js';
 
 const normalizeMedicines = (medicines = []) =>
   medicines.map((m) => {
@@ -20,22 +22,34 @@ const normalizeMedicines = (medicines = []) =>
     };
   });
 
-const getDoctorContext = async (user) => {
-  const doctor = await Doctor.findOne({ user: user._id });
+const getDoctorContext = async (user, staffProfile = null) => {
+  const opRole = resolveOperationalRole(user, staffProfile);
+  let doctor = await Doctor.findOne({ user: user._id });
+  if (!doctor && (user.role === 'doctor' || opRole === 'doctor')) {
+    const doctorId = await generateDoctorId();
+    doctor = await Doctor.create({
+      user: user._id,
+      doctorId,
+      specialization: staffProfile.department || 'General Medicine',
+      department: staffProfile.department || 'General Medicine',
+      tenant: staffProfile.tenant,
+      branch: staffProfile.branch,
+    });
+  }
   if (!doctor) {
     const err = new Error('Doctor profile not found');
     err.status = 403;
     throw err;
   }
   const doctorUser = await User.findById(user._id);
-  return { doctor, doctorName: doctorUser.name };
+  return { doctor, doctorName: doctorUser?.name || 'Doctor' };
 };
 
 export const createPrescription = async (req, res, next) => {
   try {
     const { patientId, symptoms, diagnosis, medicines, clinicalNotes, notes, followUpDate } =
       req.body;
-    const { doctor, doctorName } = await getDoctorContext(req.user);
+    const { doctor, doctorName } = await getDoctorContext(req.user, req.staff);
     const patient = await Patient.findOne({ patientId }).populate('user', 'name');
     if (!patient) {
       res.status(404);
@@ -137,7 +151,7 @@ export const getPrescriptions = async (req, res, next) => {
 
 export const updatePrescription = async (req, res, next) => {
   try {
-    const { doctor } = await getDoctorContext(req.user);
+    const { doctor } = await getDoctorContext(req.user, req.staff);
     const rx = await Prescription.findById(req.params.id);
     if (!rx || rx.doctor.toString() !== doctor._id.toString()) {
       res.status(403);
@@ -158,7 +172,7 @@ export const updatePrescription = async (req, res, next) => {
 
 export const deletePrescription = async (req, res, next) => {
   try {
-    const { doctor } = await getDoctorContext(req.user);
+    const { doctor } = await getDoctorContext(req.user, req.staff);
     const rx = await Prescription.findById(req.params.id);
     if (!rx || rx.doctor.toString() !== doctor._id.toString()) {
       res.status(403);

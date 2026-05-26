@@ -167,12 +167,22 @@ const Register = () => {
                 className="input-premium bg-white"
               >
                 <option value="receptionist">Reception</option>
+                <option value="doctor">Doctor (clinical)</option>
                 <option value="billing_staff">Billing</option>
                 <option value="lab_supervisor">Laboratory</option>
                 <option value="ward_manager">Ward</option>
                 <option value="pharmacist">Pharmacy</option>
                 <option value="printer_filing_officer">Discharge & records</option>
               </select>
+            )}
+            {formData.role === 'staff' && formData.operationalRole === 'doctor' && (
+              <input
+                required
+                placeholder="Specialization (e.g. Cardiology)"
+                value={formData.specialization}
+                onChange={(e) => set('specialization', e.target.value)}
+                className="input-premium"
+              />
             )}
           </div>
         )}

@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Staff from '../models/platform/Staff.js';
 import { verifyAccessToken } from '../modules/auth/token.service.js';
+import { resolveOperationalRole } from '../modules/auth/rbac.js';
 
 export const protect = async (req, res, next) => {
   if (req.headers.authorization?.startsWith('Bearer')) {
@@ -32,15 +34,39 @@ export const protect = async (req, res, next) => {
   return next(new Error('Not authorized, no token'));
 };
 
+/**
+ * Allow legacy User.role and matching Staff operationalRole (e.g. staff + doctor).
+ */
 export const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+  return async (req, res, next) => {
+    if (!req.user) {
       res.status(403);
-      return next(
-        new Error(`User role ${req.user ? req.user.role : 'unknown'} is not authorized`)
-      );
+      return next(new Error('User role unknown is not authorized'));
     }
-    return next();
+
+    if (roles.includes(req.user.role)) {
+      return next();
+    }
+
+    try {
+      let staff = req.staff;
+      if (!staff) {
+        staff = await Staff.findOne({ user: req.user._id, isActive: true });
+      }
+      const opRole = resolveOperationalRole(req.user, staff);
+      if (roles.includes(opRole)) {
+        req.staff = staff;
+        req.operationalRole = opRole;
+        return next();
+      }
+    } catch (err) {
+      return next(err);
+    }
+
+    res.status(403);
+    return next(
+      new Error(`User role ${req.user.role} is not authorized`)
+    );
   };
 };
 

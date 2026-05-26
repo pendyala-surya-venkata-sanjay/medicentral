@@ -109,6 +109,7 @@ export const registerUser = async (req, res, next) => {
       }
       const allowedRoles = [
         'receptionist',
+        'doctor',
         'doctor_pa',
         'lab_supervisor',
         'billing_staff',
@@ -127,6 +128,22 @@ export const registerUser = async (req, res, next) => {
         branch: branch._id,
         department: req.body.department?.trim(),
       });
+      if (opRole === 'doctor') {
+        const doctorId = await generateDoctorId();
+        await Doctor.create({
+          user: createdUser._id,
+          doctorId,
+          specialization: req.body.specialization?.trim() || 'General Medicine',
+          department:
+            req.body.department?.trim() ||
+            req.body.specialization?.trim() ||
+            'General Medicine',
+          consultationFee: req.body.consultationFee ? Number(req.body.consultationFee) : undefined,
+          qualification: req.body.qualification,
+          tenant: tenant._id,
+          branch: branch._id,
+        });
+      }
     }
 
     const response = await buildAuthResponse(createdUser, { req, res });
